@@ -23,8 +23,8 @@ namespace Moteur_de_Recherche
             List<Html> stat = new List<Html>();
 
             #region StartUrl
-            WebLink.LinkToVisit.Add("http://www.surgelesjlm.com/produits-categories.php");
-            //WebLink.LinkToVisit.Add("http://www.youtube.com/watch?v=SzHjp99aYjw");
+            WebLink.LinkToVisit.Add("http://vortex.infosth.com");
+            WebLink.LinkToVisit.Add("http://tva.ca");
             #endregion
 
             Random random = new Random();
@@ -39,8 +39,9 @@ namespace Moteur_de_Recherche
                 #region TestCurrentWebSite
                 //------------Test----------------------
                 Console.WriteLine("#########");
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine(WebLink.LinkToVisit[r]);
-                Console.WriteLine("#########");
+                Console.ResetColor();
                 //--------------------------------------
                 #endregion
                

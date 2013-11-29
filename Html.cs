@@ -61,11 +61,12 @@ namespace Moteur_de_Recherche
                 error.Link = m_link;
 
                 WebLink.LinkCauseError.Add(error);
-                WebLink.LinkToVisit.Remove(m_link);
 
                 #region TestLinkCauseError
                 //-----------Test Affiche erreur--------
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
+                Console.ResetColor();
                 #endregion
             }
 
@@ -74,7 +75,6 @@ namespace Moteur_de_Recherche
             GetTagInnerText(htmlCode, "<h2", "</h2>", ref this.m_listH2);
             m_title = GetHtmlTitle(ref htmlCode);
             GetMetaContent(ref htmlCode, m_metaName);
-
         }
 
 
