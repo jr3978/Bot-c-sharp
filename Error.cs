@@ -10,5 +10,6 @@ namespace Moteur_de_Recherche
     {
         public string Link { get; set; }
         public string ErrorMessage { get; set; }
+        public DateTime VisitedDate { get; set; }
     }
 }
