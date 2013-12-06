@@ -7,6 +7,7 @@ using System.Net;
 using Moteur_de_Recherche;
 using robot;
 using System.Web;
+using System.Diagnostics;
 
 namespace search_bot
 {

@@ -4,12 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moteur_de_Recherche;
+using System.Diagnostics;
 
 namespace robot
 {
     class Bot
     {
-        private HtmlDataBase m_dataBase;
+        private bool m_aloneOnWork;
+        private Stopwatch m_stopwatch;
+        private Stopwatch m_stopwatchRobots;
+        private RobotTable m_tbot;
+        private WebStatDataContext m_dataBase;
+        private HtmlDataBase m_htmlDataBase;
         private List<Html> m_stat;
         private Random m_random;
         private int m_errorIndex;
@@ -25,12 +31,30 @@ namespace robot
 
         public Bot(params string[] startUrl)
         {
-            m_dataBase = new HtmlDataBase();
+            m_aloneOnWork = true;
+            m_stopwatchRobots = new Stopwatch();
+            m_stopwatch = new Stopwatch();
+            m_dataBase = new WebStatDataContext();
+            m_tbot = new RobotTable { IsDroppingDataInTables = false, IsWorkingOnTableUnvisited = false, IsWorking = true, TotalLinkVisited = 0 };
+            m_dataBase.RobotTable.InsertOnSubmit(m_tbot);
+            m_dataBase.SubmitChanges();
+
+            m_htmlDataBase = new HtmlDataBase();
             m_random = new Random();
             m_stat = new List<Html>();
 
-            if (m_dataBase.CountUnvisitedSite() > 0)
-                m_dataBase.DropUnvisitedSiteInDataBase();
+
+            WaitForTableUnvisited();
+            if (m_htmlDataBase.CountUnvisitedSite() > 0)
+            {
+                m_tbot.IsWorkingOnTableUnvisited = true;
+                m_dataBase.SubmitChanges();
+
+                m_htmlDataBase.DropUnvisitedSiteInDataBase();
+
+                m_tbot.IsWorkingOnTableUnvisited = false;
+                m_dataBase.SubmitChanges();
+            }
             else
             {
                 for (int i = 0; i < startUrl.Count(); i++)
@@ -44,10 +68,32 @@ namespace robot
 
         public void Search()
         {
+            m_stopwatchRobots.Start();
+
+
             for (int i = 0; i < WebLink.LinkToVisit.Count; i++)
             {
-                int r = m_random.Next(0, WebLink.LinkToVisit.Count);
-                Html webSite = new Html(WebLink.LinkToVisit[r]);
+                if (m_stopwatchRobots.ElapsedMilliseconds > 500000)
+                {
+                    m_stopwatchRobots.Stop();
+
+                    if (m_dataBase.RobotTable.Count(r => r.IsWorking) != 0)
+                        m_aloneOnWork = false;
+
+                    m_stopwatchRobots.Reset();
+                    m_stopwatchRobots.Start();
+                }
+
+
+                if (WebLink.LinkToVisit.Count == 0)
+                {
+                    WaitForTableUnvisited();
+
+                    m_htmlDataBase.DropUnvisitedSiteInDataBase();
+                }
+
+                int ra = m_random.Next(0, WebLink.LinkToVisit.Count);
+                Html webSite = new Html(WebLink.LinkToVisit[ra]);
 
                 if (CurrentLinkOnConsole)
                     ConsoleCurrentLink(ref webSite);
@@ -55,8 +101,8 @@ namespace robot
                 m_errorIndex = WebLink.LinkCauseError.Count;
 
 
-                if (!m_dataBase.IsLinkAlreadyVisited(webSite.Link))
-                     webSite.ReadHtml();
+                if (!m_htmlDataBase.IsLinkAlreadyVisited(webSite.Link))
+                    webSite.ReadHtml();
 
 
                 #region WriteInConsole
@@ -64,10 +110,10 @@ namespace robot
 
                 if (LinksOnConsole)
                     ConsoleLinks(ref webSite);
-              
+
                 if (H1OnConsole)
                     ConsoleH1(ref webSite);
-              
+
                 if (H2OnConsole)
                     ConsoleH2(ref webSite);
 
@@ -76,7 +122,7 @@ namespace robot
 
                 if (TitleOnConsole)
                     ConsoleTitle(ref webSite);
-               
+
                 if (m_errorIndex != WebLink.LinkCauseError.Count && ErrorOnConsole)
                     ConsoleError();
                 #endregion
@@ -85,16 +131,27 @@ namespace robot
 
 
 
-                WebLink.LinkVisited.Add(WebLink.LinkToVisit[r]);
-                WebLink.LinkToVisit.RemoveAt(r);
+                WebLink.LinkVisited.Add(WebLink.LinkToVisit[ra]);
+                WebLink.LinkToVisit.RemoveAt(ra);
                 WebLink.CompteurLinkToVisit--;
 
                 if (m_stat.Count >= 500)
                 {
-                    m_dataBase.DropHtmlObjectInDataBase(ref m_stat);
-                    m_dataBase.DropErrorInDataBase();
-                    m_dataBase.DropUnvisitedSiteInDataBase();
+                    if (!m_aloneOnWork)
+                        WaitForDropData();
+
+                    m_tbot.IsDroppingDataInTables = true;
+                    m_tbot.TotalLinkVisited += 500;
+                    m_dataBase.SubmitChanges();
+
+
+                    m_htmlDataBase.DropHtmlObjectInDataBase(ref m_stat);
+                    m_htmlDataBase.DropErrorInDataBase();
+                    m_htmlDataBase.DropUnvisitedSiteInDataBase();
                     WebLink.LinkVisited.Clear();
+
+                    m_tbot.IsDroppingDataInTables = false;
+                    m_dataBase.SubmitChanges();
                 }
 
             }
@@ -113,6 +170,40 @@ namespace robot
             //--------------------------------------
         }
 
+
+        private void WaitForTableUnvisited()
+        {
+            if (!m_aloneOnWork)
+            {
+                while (m_dataBase.RobotTable.Count(r => r.IsWorkingOnTableUnvisited) != 0)
+                {
+                    m_stopwatch.Reset();
+                    m_stopwatch.Start();
+                    while (m_stopwatch.IsRunning)
+                    {
+                        if (m_stopwatch.ElapsedMilliseconds > 10)
+                            m_stopwatch.Stop();
+                    }
+                }
+            }
+        }
+
+        private void WaitForDropData()
+        {
+            if (!m_aloneOnWork)
+            {
+                while (m_dataBase.RobotTable.Count(r => r.IsDroppingDataInTables) != 0)
+                {
+                    m_stopwatch.Reset();
+                    m_stopwatch.Start();
+                    while (m_stopwatch.IsRunning)
+                    {
+                        if (m_stopwatch.ElapsedMilliseconds > 10)
+                            m_stopwatch.Stop();
+                    }
+                }
+            }
+        }
 
 
         private void ConsoleLinks(ref Html webSite)
@@ -169,5 +260,6 @@ namespace robot
             Console.ResetColor();
         }
 
+        
     }
 }

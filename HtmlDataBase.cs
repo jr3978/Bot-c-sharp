@@ -9,7 +9,7 @@ namespace robot
 {
     public class HtmlDataBase
     {
-
+        
         private TableLink m_tableLink;
         private TableEmail m_tableEmail;
         private TableH1 m_tableH1;
@@ -18,6 +18,7 @@ namespace robot
         private TableMeta m_tableMeta;
         private TableError m_tableError;
         private WebStatDataContext m_dataBase;
+       
 
 
 
@@ -119,7 +120,7 @@ namespace robot
 
             m_dataBase.SubmitChanges();
 
-            for (int i = 0; i < 300; i++)
+            for (int i = 0; i < 15; i++)
             {
                 if (m_dataBase.TableUnvisited.Count() == 0)
                     break;

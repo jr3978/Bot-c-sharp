@@ -58,7 +58,19 @@ namespace Moteur_de_Recherche
             WebClient webPage = new WebClient();
             try
             {
+                #region SpeedTest
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("StartDowloadPage");
+                Console.ResetColor();
+                #endregion
+                
                 m_htmlCode = webPage.DownloadString(m_link);
+
+                #region SpeedTest
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("DowloadPage DONE");
+                Console.ResetColor();
+                #endregion
 
                 GetAllLink();
                 GetTagInnerText("<h1", "</h1>", ref this.m_listH1);
@@ -83,6 +95,12 @@ namespace Moteur_de_Recherche
 
         private void GetAllLink()
         {
+            #region SpeedTest
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("GetAllLink START");
+            Console.ResetColor();
+            #endregion
+
             if (m_htmlCode == null)
                 return;
 
@@ -126,6 +144,12 @@ namespace Moteur_de_Recherche
             //}
             //WebLink.LastPositionLinkToVisit = WebLink.CompteurLinkToVisit;
             ////------------------------------------------------------------------------------------------
+            #endregion
+
+            #region SpeedTest
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("GetAllLink DONE");
+            Console.ResetColor();
             #endregion
         }
 
@@ -179,7 +203,15 @@ namespace Moteur_de_Recherche
                 innerText = InnerTextTagManagement(ref sE, ref e);
                 if (innerText.Trim() != "")
                     list.Add(innerText);
+               
+                index = e;
 
+                if (index < 0)
+                    return;
+                tagCounter++;
+
+
+                #region testOldVersion
                 //--------------------test-------------------------------------------
                 //string test ="  <a href=\"http://yuilibrary.com/yuiconf/2013/\" title=\"Join us at YUIConf 2013\"> Join us at YUIConf 2013  </a> ";
                 //int sta = 0, end = test.Length;
@@ -207,13 +239,15 @@ namespace Moteur_de_Recherche
                 //    for (int i = eA + 1; htmlCode.ElementAt(i) != '<'; i++)
                 //        innerText += htmlCode.ElementAt(i);
                 //}
+                #endregion
+
+                #region SpeedTest
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("GetTagInnerText DONE");
+                Console.ResetColor();
+                #endregion
 
 
-                index = e;
-
-                if (index < 0)
-                    return;
-                tagCounter++;
             }
 
 
@@ -269,6 +303,12 @@ namespace Moteur_de_Recherche
             #region TestTitle
             ////--------------------Test Affichage titre----------------
             //Console.WriteLine("TITLE: " + m_title);
+            #endregion
+
+            #region SpeedTest
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("GetTitle DONE");
+            Console.ResetColor();
             #endregion
 
             return m_title;
@@ -332,6 +372,12 @@ namespace Moteur_de_Recherche
                     m_listMeta.Add(new MetaTag(name, contentText));
                 }
             }
+
+            #region SpeedTest
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("GetMetaContent DONE");
+            Console.ResetColor();
+            #endregion
         }
 
         private void GetAllEmailAddress()
@@ -373,6 +419,12 @@ namespace Moteur_de_Recherche
                     index = eE;
                 else
                     break;
+
+                #region SpeedTest
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("GetAllEmailAddress DONE");
+                Console.ResetColor();
+                #endregion
             }
         }
     }
